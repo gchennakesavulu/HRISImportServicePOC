@@ -1,0 +1,281 @@
+USE [TMSPositionManager]
+GO
+
+/****** Object:  Table [dbo].[Stg_JobTemplate]    Script Date: 10/30/2026 7:21:42 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Stg_JobTemplate](
+	[JobTemplateID] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [dbo].[TMSName] NOT NULL,
+	[JobPostingTitle] [nvarchar](100) NULL,
+	[Code] [nvarchar](100) NULL,
+	[JobDescription] [nvarchar](max) NULL,
+	[JobSummary] [nvarchar](max) NULL,
+	[FormID] [int] NULL,
+	[KnowledgeSkillsAbilities] [nvarchar](1000) NULL,
+	[Hours] [nvarchar](100) NULL,
+	[NationalJobCategoryID] [int] NULL,
+	[CategoryID] [int] NOT NULL,
+	[EducationID] [int] NULL,
+	[EEOJobGroupID] [int] NULL,
+	[ScheduleID] [int] NULL,
+	[ShiftID] [int] NULL,
+	[SalaryRangeID] [int] NULL,
+	[PayGradeID] [int] NULL,
+	[JobStatusID] [int] NULL,
+	[RankingQuestionnaireID] [int] NULL,
+	[PreQualificationQuestionnaireID] [int] NULL,
+	[PreQualMessageTemplateID] [int] NULL,
+	[AssessmentPackageID] [int] NULL,
+	[InternalEmailReplyTemplateID] [int] NULL,
+	[ExternalEmailReplyTemplateID] [int] NULL,
+	[UseDefaultInternalEmailReplyTemplate] [bit] NOT NULL,
+	[UseDefaultExternalEmailReplyTemplate] [bit] NOT NULL,
+	[HRISIdentifier] [dbo].[TMSHRISIdentifier] NULL,
+	[Active] [bit] NOT NULL,
+	[IsAvailableInJobAgent] [bit] NOT NULL,
+	[BehavioralAssessmentVendorID] [int] NULL,
+	[JobFamilyID] [int] NULL,
+	[ReferenceBenchmarkTypeID] [int] NULL,
+	[Deleted] [int] NOT NULL,
+	[CreateDate] [dbo].[TMSTimeStamp] NOT NULL,
+	[ModifiedDate] [dbo].[TMSTimeStamp] NULL,
+	[CreatedBy] [int] NOT NULL,
+	[ModifiedBy] [int] NULL,
+	[SystemIdentity] [dbo].[TMSName] NULL,
+	[AutoInviteBackTemplateID] [int] NULL,
+	[UseDefaultShortApplyEmailReplyTemplate] [bit] NOT NULL,
+	[LeanCapitalJobFamilyTypeID] [int] NULL,
+	[BehavioralAssessmentVendorOfferingID] [int] NULL,
+	[PostingBrandingHierarchyLevelID] [int] NOT NULL,
+	[ReferenceAssessmentVendorOfferingID] [int] NULL,
+	[ReferenceAssessmentDivisionID] [int] NULL,
+	[ReferenceAssessmentWorkforceSegmentID] [int] NULL,
+	[ShortFormAssessmentOnly] [bit] NOT NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Stg_JobTemplate] ADD  DEFAULT ((0)) FOR [UseDefaultInternalEmailReplyTemplate]
+GO
+
+ALTER TABLE [dbo].[Stg_JobTemplate] ADD  DEFAULT ((0)) FOR [UseDefaultExternalEmailReplyTemplate]
+GO
+
+ALTER TABLE [dbo].[Stg_JobTemplate] ADD  DEFAULT ((1)) FOR [UseDefaultShortApplyEmailReplyTemplate]
+GO
+
+ALTER TABLE [dbo].[Stg_JobTemplate] ADD  DEFAULT ((-1)) FOR [PostingBrandingHierarchyLevelID]
+GO
+
+ALTER TABLE [dbo].[Stg_JobTemplate] ADD  DEFAULT ((0)) FOR [ShortFormAssessmentOnly]
+GO
+
+
+-----------------------------------------------------------------------------------------
+USE [TMSPositionManager]
+GO
+
+/****** Object:  Table [dbo].[Stg_JobTemplateBusinessEntity]    Script Date: 10/30/2026 7:22:36 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Stg_JobTemplateBusinessEntity](
+	[JobTemplateBusinessEntityID] [int] IDENTITY(1,1) NOT NULL,
+	[JobTemplateID] [int] NULL,
+	[BusinessEntityID] [int] NOT NULL,
+	[Deleted] [int] NOT NULL,
+	[CreateDate] [dbo].[TMSTimeStamp] NOT NULL,
+	[ModifiedDate] [dbo].[TMSTimeStamp] NULL,
+	[CreatedBy] [int] NOT NULL,
+	[ModifiedBy] [int] NULL,
+	[SystemIdentity] [dbo].[TMSName] NULL,
+	[Code] [nvarchar](100) NULL
+) ON [PRIMARY]
+GO
+
+
+-------------------------------------------------------------------------------------------------------
+USE [TMSPositionManager]
+GO
+
+/****** Object:  StoredProcedure [dbo].[MergeJobTemplateData]    Script Date: 10/30/2026 7:23:55 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+
+CREATE PROCEDURE [dbo].[MergeJobTemplateData]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRANSACTION;
+
+    BEGIN TRY
+
+        /* Merge JobTemplate */
+        MERGE Admin.JobTemplate AS T
+        USING dbo.Stg_JobTemplate AS S
+        ON T.Code = S.Code
+
+        WHEN MATCHED THEN
+            UPDATE SET
+                T.Name = S.Name,
+				T.JobPostingTitle = S.Name,
+                T.JobSummary = S.JobDescription,
+                T.Hours = S.Hours,
+                T.CategoryID = S.CategoryID,
+                T.EEOJobGroupID = S.EEOJobGroupID,
+                T.ScheduleID = S.ScheduleID,
+                T.ShiftID = S.ShiftID,
+                T.SalaryRangeID = S.SalaryRangeID,
+                T.PayGradeID = S.PayGradeID,
+                T.JobStatusID = S.JobStatusID,
+                T.HRISIdentifier = S.HRISIdentifier,
+				T.CreateDate = GETUTCDATE(),
+                T.ModifiedDate = GETUTCDATE(),
+				T.CreatedBy=5,
+				T.Modifiedby=5
+
+        WHEN NOT MATCHED BY TARGET THEN
+            INSERT
+            (
+                Name,
+				JobPostingTitle,
+                Code,
+                JobSummary,
+                Hours,
+                CategoryID,
+                EEOJobGroupID,
+                ScheduleID,
+                ShiftID,
+                SalaryRangeID,
+                PayGradeID,
+                JobStatusID,
+                HRISIdentifier,
+                Active,
+                IsAvailableInJobAgent,
+                Deleted,
+                CreateDate,
+				ModifiedDate,
+                CreatedBy,
+				Modifiedby
+            )
+            VALUES
+            (
+                S.Name,
+				S.Name,
+                S.Code,
+                S.JobDescription,
+                S.Hours,
+                S.CategoryID,
+                S.EEOJobGroupID,
+                S.ScheduleID,
+                S.ShiftID,
+                S.SalaryRangeID,
+                S.PayGradeID,
+                S.JobStatusID,
+                S.HRISIdentifier,
+                S.Active,
+                S.IsAvailableInJobAgent,
+                S.Deleted,
+                S.CreateDate,
+				S.ModifiedDate,
+                S.CreatedBy,
+				S.Modifiedby
+            );
+
+        /* Merge JobTemplateBusinessEntity */
+        MERGE Admin.JobTemplateBusinessEntity AS T
+        USING
+        (
+            SELECT
+                JT.JobTemplateID,
+                SBE.BusinessEntityID,
+                SBE.Deleted,
+                SBE.CreateDate,
+				SBE.ModifiedDate,
+                SBE.CreatedBy,              
+                SBE.ModifiedBy
+            FROM dbo.Stg_JobTemplateBusinessEntity SBE
+            INNER JOIN dbo.Stg_JobTemplate ST
+                ON ST.Code = SBE.Code
+            INNER JOIN admin.JobTemplate JT
+                ON JT.Code = ST.Code
+        ) AS S
+        ON T.JobTemplateID = S.JobTemplateID
+           AND T.BusinessEntityID = S.BusinessEntityID
+
+        WHEN MATCHED THEN
+            UPDATE SET
+                T.ModifiedDate = GETUTCDATE(),
+                T.ModifiedBy = S.ModifiedBy
+
+        WHEN NOT MATCHED BY TARGET THEN
+            INSERT
+            (
+                JobTemplateID,
+                BusinessEntityID,
+                Deleted,
+                CreateDate,
+				ModifiedDate,
+                CreatedBy,
+				ModifiedBy
+            )
+            VALUES
+            (
+                S.JobTemplateID,
+                S.BusinessEntityID,
+                S.Deleted,
+                S.CreateDate,
+			     GETUTCDATE(),
+                S.CreatedBy,
+				5
+
+            );
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        THROW;
+    END CATCH
+END
+GO
+
+
+---------------------------------------------------------------------------------------
+CREATE PROCEDURE dbo.ClearJobTemplateStageTables
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        -- Clear staging tables
+        DELETE FROM dbo.Stg_JobTemplateBusinessEntity;
+        DELETE FROM dbo.Stg_JobTemplate;
+
+        PRINT 'Staging tables cleared successfully.';
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END;
+GO
